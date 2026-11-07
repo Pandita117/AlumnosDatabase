@@ -48,7 +48,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             Practica5CRTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    registro_alumno()
                 }
             }
         }
@@ -59,304 +58,304 @@ class MainActivity : ComponentActivity() {
 
 
 
-@Composable
-fun registro_alumno() {
-    var elliminacion_alumno by remember { mutableStateOf<Alumno.alumno?>(null) }
-    var eliminacion_matricula by remember { mutableStateOf("") }
-    val lista_alumnos = remember { mutableStateListOf<Alumno.alumno>() }
-    var alumno_editando by remember { mutableStateOf<Alumno.alumno?>(null) }
-    var alumno_guardado by remember { mutableStateOf("") }
-    var mensaje_para_nubs by remember { mutableStateOf("") }
-    var matricula by remember { mutableStateOf("") }
-    var nombre by remember { mutableStateOf("") }
-    var edad by remember { mutableStateOf("") }
-    var grupo by remember { mutableStateOf("") }
-    var seccion by remember { mutableStateOf("") }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 20.dp)
-
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Matrícula
-            OutlinedTextField(
-                value = matricula,
-                onValueChange = {
-                    if (Alumno.alumno.matriculaIsValid(it)) {
-                        matricula = it
-                    }
-                },
-                label = { Text("Matrícula") },
-                readOnly = alumno_editando != null,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
-            // Nombre (Permite letras y espacios)
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = {
-                    if (it.all { char -> char.isLetter() || char.isWhitespace()  }) {
-                        nombre= it.trim()
-                    }
-                },
-                label = { Text("Nombre") }
-            )
-
-            // Edad
-            OutlinedTextField(
-                value = edad,
-                onValueChange = {
-                    if (Alumno.alumno.edadIsValid(it) || it.isEmpty()) {
-                        edad = it
-                    }
-                },
-                label = { Text("Edad") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
-            // Grupo y Sección
-            LazyRow (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                item {
-                    OutlinedTextField(
-                        value = grupo,
-                        onValueChange = {
-                            if (it.length <= 1 && it.all { char -> char.isDigit() }) {
-                                grupo = it
-                            }
-                        },
-                        label = { Text("Grupo") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.width(150.dp).weight(1f)
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = seccion,
-                        onValueChange = {
-                            if (it.length <= 1 && it.all { char -> char.isLetter() }) {
-                                seccion = it
-                            }
-                        },
-                        label = { Text("Sección") },
-                        modifier = Modifier.width(150.dp).weight(1f)
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = eliminacion_matricula,
-                        onValueChange = {
-                            if (Alumno.alumno.matriculaIsValid(it)){
-                                eliminacion_matricula = it
-                            }
-                        },
-                        label = {Text("Eliminacion ")},
-                        modifier = Modifier.width(150.dp).weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
-                    Row() {
-                        Button(
-                            onClick = {
-                                  elliminacion_alumno =   lista_alumnos.find { it.matricula == eliminacion_matricula }
-                                if (elliminacion_alumno == null){
-                                    mensaje_para_nubs= "Alumno no encontrado"
-                                }
-
-                                lista_alumnos.remove(elliminacion_alumno)
-
-                            },
-                            modifier = Modifier.size(30.dp),
-                            shape = RectangleShape,
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Borrar_matri"
-                            )
-                        }
-                    }
-                }
-
-            }
-
-            // Botón Guardar
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 23.dp, vertical = 8.dp),
-                onClick = {
-                    mensaje_para_nubs = ""
-                    alumno_guardado = ""
-
-
-                    // validaciones por si estan vacios
-                    if (matricula.isBlank() || nombre.isBlank() || edad.isBlank() || grupo.isBlank() || seccion.isBlank()) {
-                        mensaje_para_nubs = "Llena todos los campos vacíos"
-                    }
-
-                    //modo de edicion
-                    else if (alumno_editando != null){
-                        val alumno_actualizado = Alumno.alumno(
-                            nombre = nombre,
-                            matricula = matricula,
-                            edad = edad.toInt(),
-                            Grupo = grupo.toInt(),
-                            Seccion = seccion.first().uppercaseChar()
-                        )
-
-
-                        val index = lista_alumnos.indexOf(alumno_editando)
-                        if (index != -1){
-                            lista_alumnos[index] = alumno_actualizado
-                            alumno_guardado = "Alumno actualizado"
-                        }
-
-                        //aca para que no se quede guardado los datos del otro alumno
-                        alumno_editando = null
-                        matricula = ""
-                        nombre = ""
-                        edad =""
-                        grupo = ""
-                        seccion =""
-                    }
-
-                     else if (Alumno.alumno.matriculaExiste(matricula,lista_alumnos)){
-                         mensaje_para_nubs="Error la matricula $matricula ya se encuentra registarada"
-                    }
-                     //registro de agregar
-                     else {
-                        val alumno_niu = Alumno.alumno(
-                            nombre = nombre,
-                            matricula = matricula,
-                            edad = edad.toInt(),
-                            Grupo = grupo.toInt(),
-                            Seccion = seccion.first().uppercaseChar()
-                        )
-                        lista_alumnos.add(alumno_niu)
-                        alumno_guardado = "¡Alumno agregado con éxito!"
-
-                        // Limpiar campos del formulario
-                        matricula = ""
-                        nombre = ""
-                        edad = ""
-                        grupo = ""
-                        seccion = ""
-                    }
-                }
-            ) {
-                Text(if (alumno_editando != null) "Actualizar alumno" else "Guardar alumno")
-            }
-
-            //
-            if (alumno_guardado.isNotEmpty()) {
-                Text(
-                    text = alumno_guardado,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-
-            if (mensaje_para_nubs.isNotEmpty()) {
-                Text(
-                    text = mensaje_para_nubs,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-        }
-            //Lsita de alumnos
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-
-            //Aqui van los alumnos mostralos en cards para wue se vena kiuts
-        ) {
-            items(lista_alumnos) { alumno ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        //info del cchavalr
-                        Column {
-                            Text(
-                                text = alumno.nombre,
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            Text(
-                                text = "Matrícula: ${alumno.matricula} | Edad: ${alumno.edad}",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        Text(
-                            text = "${alumno.Grupo}° ${alumno.Seccion}",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-
-                        //botones de editar alu y delete
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                           Button( onClick = {
-                               lista_alumnos.remove(alumno)
-                           } ,
-                               modifier = Modifier.size(30.dp),
-                               shape = RectangleShape,
-                               contentPadding = PaddingValues(0.dp)
-                               )
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "Borrar alumno"
-                               )
-                           }
-                            Button(
-                                onClick = {
-                                    nombre = alumno.nombre
-                                    matricula = alumno.matricula
-                                    edad = alumno.edad.toString()
-                                    grupo = alumno.Grupo.toString()
-                                    seccion = alumno.Seccion.toString()
-                                    alumno_editando = alumno
-                                },
-                                modifier = Modifier.size(30.dp),
-                                shape = RectangleShape,
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Editar alumno"
-                                )
-                            }
-
-
-                        }
-
-                    }
-                }
-            }
-        }
-    }
-}
+//@composable
+//fun registro_alumno() {
+//    var elliminacion_alumno by remember { mutablestateof<alumno.alumno?>(null) }
+//    var eliminacion_matricula by remember { mutablestateof("") }
+//    val lista_alumnos = remember { mutablestatelistof<alumno.alumno>() }
+//    var alumno_editando by remember { mutablestateof<alumno.alumno?>(null) }
+//    var alumno_guardado by remember { mutablestateof("") }
+//    var mensaje_para_nubs by remember { mutablestateof("") }
+//    var matricula by remember { mutablestateof("") }
+//    var nombre by remember { mutablestateof("") }
+//    var edad by remember { mutablestateof("") }
+//    var grupo by remember { mutablestateof("") }
+//    var seccion by remember { mutablestateof("") }
+//
+//    column(
+//        modifier = modifier
+//            .fillmaxsize()
+//            .padding(top = 20.dp)
+//
+//    ) {
+//        column(
+//            modifier = modifier.fillmaxwidth(),
+//            horizontalalignment = alignment.centerhorizontally
+//        ) {
+//            // matrícula
+//            outlinedtextfield(
+//                value = matricula,
+//                onvaluechange = {
+//                    if (alumno.alumno.matriculaisvalid(it)) {
+//                        matricula = it
+//                    }
+//                },
+//                label = { text("matrícula") },
+//                readonly = alumno_editando != null,
+//                keyboardoptions = keyboardoptions(keyboardtype = keyboardtype.number)
+//            )
+//
+//            // nombre (permite letras y espacios)
+//            outlinedtextfield(
+//                value = nombre,
+//                onvaluechange = {
+//                    if (it.all { char -> char.isletter() || char.iswhitespace()  }) {
+//                        nombre= it.trim()
+//                    }
+//                },
+//                label = { text("nombre") }
+//            )
+//
+//            // edad
+//            outlinedtextfield(
+//                value = edad,
+//                onvaluechange = {
+//                    if (alumno.alumno.edadisvalid(it) || it.isempty()) {
+//                        edad = it
+//                    }
+//                },
+//                label = { text("edad") },
+//                keyboardoptions = keyboardoptions(keyboardtype = keyboardtype.number)
+//            )
+//
+//            // grupo y sección
+//            lazyrow (
+//                modifier = modifier
+//                    .fillmaxwidth()
+//                    .padding(16.dp),
+//                horizontalarrangement = arrangement.spacedby(10.dp)
+//            ) {
+//                item {
+//                    outlinedtextfield(
+//                        value = grupo,
+//                        onvaluechange = {
+//                            if (it.length <= 1 && it.all { char -> char.isdigit() }) {
+//                                grupo = it
+//                            }
+//                        },
+//                        label = { text("grupo") },
+//                        keyboardoptions = keyboardoptions(keyboardtype = keyboardtype.number),
+//                        modifier = modifier.width(150.dp).weight(1f)
+//                    )
+//                }
+//
+//                item {
+//                    outlinedtextfield(
+//                        value = seccion,
+//                        onvaluechange = {
+//                            if (it.length <= 1 && it.all { char -> char.isletter() }) {
+//                                seccion = it
+//                            }
+//                        },
+//                        label = { text("sección") },
+//                        modifier = modifier.width(150.dp).weight(1f)
+//                    )
+//                }
+//                item {
+//                    outlinedtextfield(
+//                        value = eliminacion_matricula,
+//                        onvaluechange = {
+//                            if (alumno.alumno.matriculaisvalid(it)){
+//                                eliminacion_matricula = it
+//                            }
+//                        },
+//                        label = {text("eliminacion ")},
+//                        modifier = modifier.width(150.dp).weight(1f),
+//                        keyboardoptions = keyboardoptions(keyboardtype = keyboardtype.number)
+//                    )
+//                    row() {
+//                        button(
+//                            onclick = {
+//                                  elliminacion_alumno =   lista_alumnos.find { it.matricula == eliminacion_matricula }
+//                                if (elliminacion_alumno == null){
+//                                    mensaje_para_nubs= "alumno no encontrado"
+//                                }
+//
+//                                lista_alumnos.remove(elliminacion_alumno)
+//
+//                            },
+//                            modifier = modifier.size(30.dp),
+//                            shape = rectangleshape,
+//                            contentpadding = paddingvalues(0.dp)
+//                        ) {
+//                            icon(
+//                                imagevector = icons.default.delete,
+//                                contentdescription = "borrar_matri"
+//                            )
+//                        }
+//                    }
+//                }
+//
+//            }
+//
+//            // botón guardar
+//            button(
+//                modifier = modifier
+//                    .fillmaxwidth()
+//                    .padding(horizontal = 23.dp, vertical = 8.dp),
+//                onclick = {
+//                    mensaje_para_nubs = ""
+//                    alumno_guardado = ""
+//
+//
+//                    // validaciones por si estan vacios
+//                    if (matricula.isblank() || nombre.isblank() || edad.isblank() || grupo.isblank() || seccion.isblank()) {
+//                        mensaje_para_nubs = "llena todos los campos vacíos"
+//                    }
+//
+//                    //modo de edicion
+//                    else if (alumno_editando != null){
+//                        val alumno_actualizado = alumno.alumno(
+//                            nombre = nombre,
+//                            matricula = matricula,
+//                            edad = edad.toint(),
+//                            grupo = grupo.toint(),
+//                            seccion = seccion.first().uppercasechar()
+//                        )
+//
+//
+//                        val index = lista_alumnos.indexof(alumno_editando)
+//                        if (index != -1){
+//                            lista_alumnos[index] = alumno_actualizado
+//                            alumno_guardado = "alumno actualizado"
+//                        }
+//
+//                        //aca para que no se quede guardado los datos del otro alumno
+//                        alumno_editando = null
+//                        matricula = ""
+//                        nombre = ""
+//                        edad =""
+//                        grupo = ""
+//                        seccion =""
+//                    }
+//
+//                     else if (alumno.alumno.matriculaexiste(matricula,lista_alumnos)){
+//                         mensaje_para_nubs="error la matricula $matricula ya se encuentra registarada"
+//                    }
+//                     //registro de agregar
+//                     else {
+//                        val alumno_niu = alumno.alumno(
+//                            nombre = nombre,
+//                            matricula = matricula,
+//                            edad = edad.toint(),
+//                            grupo = grupo.toint(),
+//                            seccion = seccion.first().uppercasechar()
+//                        )
+//                        lista_alumnos.add(alumno_niu)
+//                        alumno_guardado = "¡alumno agregado con éxito!"
+//
+//                        // limpiar campos del formulario
+//                        matricula = ""
+//                        nombre = ""
+//                        edad = ""
+//                        grupo = ""
+//                        seccion = ""
+//                    }
+//                }
+//            ) {
+//                text(if (alumno_editando != null) "actualizar alumno" else "guardar alumno")
+//            }
+//
+//            //
+//            if (alumno_guardado.isnotempty()) {
+//                text(
+//                    text = alumno_guardado,
+//                    color = materialtheme.colorscheme.primary,
+//                    modifier = modifier.padding(vertical = 8.dp)
+//                )
+//            }
+//
+//            if (mensaje_para_nubs.isnotempty()) {
+//                text(
+//                    text = mensaje_para_nubs,
+//                    color = materialtheme.colorscheme.error,
+//                    modifier = modifier.padding(vertical = 8.dp)
+//                )
+//            }
+//        }
+//            //lsita de alumnos
+//        lazycolumn(
+//            modifier = modifier.fillmaxwidth(),
+//            contentpadding = paddingvalues(horizontal = 16.dp, vertical = 8.dp),
+//            verticalarrangement = arrangement.spacedby(8.dp)
+//
+//            //aqui van los alumnos mostralos en cards para wue se vena kiuts
+//        ) {
+//            items(lista_alumnos) { alumno ->
+//                card(
+//                    modifier = modifier.fillmaxwidth(),
+//                    colors = carddefaults.cardcolors(
+//                        containercolor = materialtheme.colorscheme.surfacevariant
+//                    )
+//                ) {
+//                    row(
+//                        modifier = modifier
+//                            .fillmaxwidth()
+//                            .padding(12.dp),
+//                        horizontalarrangement = arrangement.spacebetween,
+//                        verticalalignment = alignment.centervertically
+//                    ) {
+//                        //info del cchavalr
+//                        column {
+//                            text(
+//                                text = alumno.nombre,
+//                                style = materialtheme.typography.titlesmall
+//                            )
+//                            text(
+//                                text = "matrícula: ${alumno.matricula} | edad: ${alumno.edad}",
+//                                style = materialtheme.typography.bodysmall
+//                            )
+//                        }
+//                        text(
+//                            text = "${alumno.grupo}° ${alumno.seccion}",
+//                            style = materialtheme.typography.labellarge
+//                        )
+//
+//                        //botones de editar alu y delete
+//                        row(
+//                            horizontalarrangement = arrangement.spacedby(4.dp)
+//                        ) {
+//                           button( onclick = {
+//                               lista_alumnos.remove(alumno)
+//                           } ,
+//                               modifier = modifier.size(30.dp),
+//                               shape = rectangleshape,
+//                               contentpadding = paddingvalues(0.dp)
+//                               )
+//                                    {
+//                                        icon(
+//                                            imagevector = icons.default.delete,
+//                                            contentdescription = "borrar alumno"
+//                               )
+//                           }
+//                            button(
+//                                onclick = {
+//                                    nombre = alumno.nombre
+//                                    matricula = alumno.matricula
+//                                    edad = alumno.edad.tostring()
+//                                    grupo = alumno.grupo.tostring()
+//                                    seccion = alumno.seccion.tostring()
+//                                    alumno_editando = alumno
+//                                },
+//                                modifier = modifier.size(30.dp),
+//                                shape = rectangleshape,
+//                                contentpadding = paddingvalues(0.dp)
+//                            ) {
+//                                icon(
+//                                    imagevector = icons.default.edit,
+//                                    contentdescription = "editar alumno"
+//                                )
+//                            }
+//
+//
+//                        }
+//
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 
 
