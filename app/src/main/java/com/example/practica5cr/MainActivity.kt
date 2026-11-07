@@ -33,12 +33,27 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.CardDefaults
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavHost
+import androidx.navigation.compose.rememberNavController
 import com.example.practica5cr.`data-dao`.Alumno
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.practica5cr.dataBase.AppDatabase
 
 
 class MainActivity : ComponentActivity() {
@@ -360,6 +375,159 @@ class MainActivity : ComponentActivity() {
 
 
 
+
+//el deste de la desta no se crea nav host
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+    val context = LocalContext.current
+
+    //el dao dao el dao dao
+    val dao = remember { AppDatabase.getDatabase(context).interAlumnoDao() }
+    val scope = rememberCoroutineScope ()
+
+    var alummnoEditar by remember { mutableStateOf<Alumno?>(null) }
+    NavHost(
+        navController = navController,
+        startDestination = "tabla_alumnos"
+
+    ){
+        composable ("tabla_alumnos" ){
+            var  listaAlumnos by remember { mutableStateListOf<List<Alumno>>(emptyList()) }
+
+            LaunchedEffect(Unit) {
+                listaAlumnos = dao.getAlumnos()
+            }
+
+            PantallaAlumnos(
+                listaAlumnos = listaAlumnos,
+                onNavigationOne = {
+                    alummnoEditar = null
+                    navController.navigate("agg_edit")
+            },
+                onNavigationTwo = {
+                    navController.navigate("delete")
+                },
+
+
+            )
+
+        }
+
+        composable ("agg_edit") {
+            PantallaAggEdit(
+                onHome = {
+                    navController.navigate("tabla_alumnos")
+                }
+            )
+        }
+
+        composable("delete") {
+            PantallaDelete(
+                onHome = {
+                    navController.navigate("tabla_alumnos")
+                }
+            )
+        }
+
+
+
+
+    }
+
+}
+
+//aca van las pantashas
+
+@Composable
+fun PantallaAlumnos(
+    onNavigationOne : () -> Unit,
+    onNavigationTwo: () -> Unit,
+    onEditarAlumno: (Alumno) -> Unit,
+    onEliminarBoton: (Alumno) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Text(text = "Registro de Alumnos",
+            color = Color.Blue)
+    }
+    Spacer(modifier = Modifier.height(12.dp))
+
+    LazyColumn(
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(listaAlumnos, Key = {it.matricula}) { alumno ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = alumno.nombre,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "Matricula: ${alumno.matricula} | Edad ${alumno.edad}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Grupo : ${alumno.grupo}° ${alumno.seccion}",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Button(onClick =  {
+                            onEliminarBoton(alumno) },
+                            modifier = Modifier.size(36.dp),
+                            shape = RectangleShape,
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                        }
+                        Button(onClick =  {
+                            onEditarAlumno(alumno) },
+                            modifier = Modifier.size(36.dp),
+                            shape = RectangleShape,
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = "Editar")
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(onClick = onNavigationOne) {
+                    Text("NIU")
+                }
+                Button(onClick = onNavigationTwo) {
+                    Text("DELETEA")
+                }
+            }
+        }
+    }
+
+
+
+}
 
 
 
