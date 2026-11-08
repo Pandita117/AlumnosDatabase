@@ -9,8 +9,8 @@ data class Alumno(
         @PrimaryKey val matricula: String,
         val nombre: String,
         var edad: Int,
-        var Grupo: Int,
-        var Seccion: Char
+        var grupo: Int,
+        var seccion: Char
     ) {
         companion object {
             fun matriculaIsValid(matricula: String): Boolean {
@@ -29,5 +29,7 @@ data class Alumno(
             }
 
         }
+
+
     }
 

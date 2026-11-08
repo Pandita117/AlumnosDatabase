@@ -1,16 +1,13 @@
 package com.example.practica5cr.dataBase
 
-
-
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.practica5cr.`data-dao`.Alumno
-import com.example.practica5cr.`data-dao`.InterAlumnoDao
+import com.example.practica5cr.datadao.Alumno
+import com.example.practica5cr.datadao.InterAlumnoDao
 
 @Database(entities = [Alumno::class], version = 1, exportSchema = false)
-
 abstract class AppDatabase : RoomDatabase() {
     abstract fun interAlumnoDao(): InterAlumnoDao
 
@@ -29,6 +26,4 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
     }
-
-
 }

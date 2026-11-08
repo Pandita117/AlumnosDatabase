@@ -10,6 +10,18 @@ android {
         version = release(37)
     }
 
+    sourceSets {
+        getByName("main") {
+            java.srcDir("build/generated/ksp/main/kotlin")
+        }
+        getByName("debug") {
+            java.srcDir("build/generated/ksp/debug/kotlin")
+        }
+        getByName("release") {
+            java.srcDir("build/generated/ksp/release/kotlin")
+        }
+    }
+
     defaultConfig {
         applicationId = "com.example.practica5cr"
         minSdk = 24
@@ -55,11 +67,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     //extras
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.navigation;navigation-compose:2.9.6")
 
     //room
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 }
